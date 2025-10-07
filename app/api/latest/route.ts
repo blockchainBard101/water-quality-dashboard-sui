@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { client, EVENT_TYPE } from '@/lib/sui';
+import { client, EVENT_TYPE, DEBUG } from '@/lib/sui';
 import { eventToReading, Reading } from '@/lib/transform';
 
 const querySchema = z.object({
@@ -13,6 +13,10 @@ export async function GET(request: NextRequest) {
     const { deviceId } = querySchema.parse({
       deviceId: searchParams.get('deviceId'),
     });
+
+    if (DEBUG) {
+      console.log('[latest] Input', { deviceId, EVENT_TYPE });
+    }
 
     let nextCursor: string | undefined;
     let hasMore = true;
@@ -28,6 +32,13 @@ export async function GET(request: NextRequest) {
         order: 'descending',
         limit: 100,
       });
+
+      if (DEBUG) {
+        console.log('[latest] Page', {
+          pageSize: result.data?.length,
+          nextCursor: result.nextCursor,
+        });
+      }
 
       if (!result.data || result.data.length === 0) {
         hasMore = false;
@@ -56,6 +67,10 @@ export async function GET(request: NextRequest) {
         { error: 'No readings found for device' },
         { status: 404 }
       );
+    }
+
+    if (DEBUG) {
+      console.log('[latest] Done', { found: !!latestReading });
     }
 
     return NextResponse.json({ data: latestReading });

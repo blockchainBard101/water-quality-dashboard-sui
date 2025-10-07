@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,14 +8,35 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Search } from 'lucide-react';
 
 interface DeviceQueryBarProps {
-  onQuery: (deviceId: string, fromMs: number, toMs: number) => void;
+  onQuery: (deviceId: string, fromMs: number, toMs: number, dataSource?: 'unified' | 'firebase' | 'blockchain') => void;
   isLoading: boolean;
+  dataSource?: 'unified' | 'firebase' | 'blockchain';
 }
 
-export function DeviceQueryBar({ onQuery, isLoading }: DeviceQueryBarProps) {
-  const [deviceId, setDeviceId] = useState('');
+export function DeviceQueryBar({ onQuery, isLoading, dataSource = 'unified' }: DeviceQueryBarProps) {
+  const defaultDeviceId = process.env.NEXT_PUBLIC_DEFAULT_DEVICE_ID ?? '';
+  const [deviceId, setDeviceId] = useState(defaultDeviceId);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [selectedDataSource, setSelectedDataSource] = useState<'unified' | 'firebase' | 'blockchain'>(dataSource);
+  const ENABLE_FIREBASE = process.env.NEXT_PUBLIC_ENABLE_FIREBASE === 'true';
+
+  // Load last-used device ID if env var isn't provided
+  useEffect(() => {
+    if (!defaultDeviceId) {
+      try {
+        const saved = localStorage.getItem('wqd:lastDeviceId');
+        if (saved) setDeviceId(saved);
+      } catch {}
+    }
+  }, [defaultDeviceId]);
+
+  // Persist device ID for future sessions
+  useEffect(() => {
+    try {
+      if (deviceId) localStorage.setItem('wqd:lastDeviceId', deviceId);
+    } catch {}
+  }, [deviceId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +59,7 @@ export function DeviceQueryBar({ onQuery, isLoading }: DeviceQueryBarProps) {
       return;
     }
 
-    onQuery(deviceId.trim(), fromMs, toMs);
+    onQuery(deviceId.trim(), fromMs, toMs, selectedDataSource);
   };
 
   const handleQuickRange = (hours: number) => {
@@ -59,6 +80,40 @@ export function DeviceQueryBar({ onQuery, isLoading }: DeviceQueryBarProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Data Source</Label>
+            <div className="flex gap-2">
+              {ENABLE_FIREBASE && (
+                <>
+                  <Button
+                    type="button"
+                    variant={selectedDataSource === 'unified' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedDataSource('unified')}
+                  >
+                    Unified (Firebase + Blockchain)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={selectedDataSource === 'firebase' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedDataSource('firebase')}
+                  >
+                    Firebase Only
+                  </Button>
+                </>
+              )}
+              <Button
+                type="button"
+                variant={selectedDataSource === 'blockchain' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedDataSource('blockchain')}
+              >
+                Blockchain Only
+              </Button>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="deviceId">Device ID</Label>

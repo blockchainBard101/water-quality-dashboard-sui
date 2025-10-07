@@ -5,5 +5,8 @@ export const client = new SuiClient({
 });
 
 export const PACKAGE_ID = process.env.NEXT_PUBLIC_PACKAGE_ID!;
-export const EVENT_TYPE = `${PACKAGE_ID}::per_minute::MinuteReadingUpserted`;
+export const EVENT_TYPE = `${PACKAGE_ID}::fms::MinuteReadingUpserted`;
 export const CLOCK_ID = '0x6';
+
+export const DEBUG =
+  (process.env.DEBUG === 'true') || (process.env.NEXT_PUBLIC_DEBUG === 'true');
