@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type') || EVENT_TYPE;
-    const module = searchParams.get('module') || 'fms';
+    const moduleName = searchParams.get('module') || 'fms';
     const limit = Number(searchParams.get('limit') || '5');
 
     const rpc = process.env.NEXT_PUBLIC_SUI_RPC_URL as string;
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       id: 1,
       method: 'suix_queryEvents',
       params: [
-        { MoveModule: { package: PACKAGE_ID, module } },
+        { MoveModule: { package: PACKAGE_ID, module: moduleName } },
         null,
         limit,
         false,
