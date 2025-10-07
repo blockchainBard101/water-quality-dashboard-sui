@@ -1,6 +1,6 @@
 import { SuiClient, SuiTransactionBlockResponse } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { client, PACKAGE_ID, EVENT_TYPE, DEBUG } from './sui';
+import { client, PACKAGE_ID, EVENT_TYPE, DEBUG, CLOCK_ID } from './sui';
 import { Reading, eventToReading } from './transform';
 import { ESP32Reading } from './firebaseService';
 

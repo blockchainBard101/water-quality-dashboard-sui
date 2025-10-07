@@ -17,6 +17,7 @@ import { db } from './firebase';
 import { Reading } from './transform';
 
 export interface ESP32Reading {
+  id?: string;
   deviceId: string;
   timestamp: Timestamp;
   temperature: number;
@@ -156,13 +157,13 @@ export class FirebaseService {
   /**
    * Get readings that need to be synced to blockchain
    */
-  static async getUnsyncedReadings(limit: number = 100): Promise<ESP32Reading[]> {
+  static async getUnsyncedReadings(maxCount: number = 100): Promise<ESP32Reading[]> {
     try {
       const q = query(
         collection(db, this.COLLECTIONS.ESP32_READINGS),
         where('syncedToBlockchain', '==', false),
         orderBy('createdAt', 'asc'),
-        limit(limit)
+        limit(maxCount)
       );
 
       const snapshot = await getDocs(q);
